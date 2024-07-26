@@ -2,6 +2,15 @@ import pandas as pd
 import os
 from tkinter import Tk, Label, Button, Entry, filedialog, messagebox, StringVar, IntVar, Canvas
 from tkinter.ttk import Progressbar
+import string
+
+# Función para convertir letras de columna a índice (A=0, B=1, etc.)
+def col_letter_to_index(letter):
+    letter = letter.upper()
+    column_number = 0
+    for char in letter:
+        column_number = column_number * 26 + (ord(char) - ord('A')) + 1
+    return column_number - 1
 
 # Función para seleccionar la carpeta
 def select_folder():
@@ -13,10 +22,22 @@ def select_columns_row():
     global initial_row, columns_range
     try:
         initial_row = int(initial_row_var.get())
-        columns_range_input = [int(col.strip()) for col in columns_range_var.get().split(',')]
+        columns_range_input = [col.strip() for col in columns_range_var.get().split(',')]
         if len(columns_range_input) == 2:
             start_col, end_col = columns_range_input
-            columns_range = list(range(start_col - 1, end_col))
+
+            # Convertir letras a índices de columna
+            if start_col.isdigit():
+                start_col_index = int(start_col) - 1
+            else:
+                start_col_index = col_letter_to_index(start_col)
+                
+            if end_col.isdigit():
+                end_col_index = int(end_col) - 1
+            else:
+                end_col_index = col_letter_to_index(end_col)
+                
+            columns_range = list(range(start_col_index, end_col_index + 1))
         else:
             raise ValueError
     except ValueError:
