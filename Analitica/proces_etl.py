@@ -13,9 +13,14 @@ def select_columns_row():
     global initial_row, columns_range
     try:
         initial_row = int(initial_row_var.get())
-        columns_range = [int(col.strip()) for col in columns_range_var.get().split(',')]
+        columns_range_input = [int(col.strip()) for col in columns_range_var.get().split(',')]
+        if len(columns_range_input) == 2:
+            start_col, end_col = columns_range_input
+            columns_range = list(range(start_col - 1, end_col))
+        else:
+            raise ValueError
     except ValueError:
-        messagebox.showerror("Error", "Por favor, introduzca valores válidos para fila y columnas.")
+        messagebox.showerror("Error", "Por favor, introduzca un rango de columnas válido en el formato inicio,fin.")
         return
 
     if not (0 <= initial_row):
