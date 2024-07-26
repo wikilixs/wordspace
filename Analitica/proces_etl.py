@@ -1,105 +1,88 @@
 import pandas as pd
 import os
-import tkinter as tk
-from tkinter import filedialog, simpledialog, messagebox, ttk
-from tkinter import *
-import threading
+from tkinter import Tk, Label, Button, Entry, filedialog, messagebox, StringVar, IntVar, Canvas
+from tkinter.ttk import Progressbar
 
-# Función para cargar y consolidar los archivos Excel
-def cargar_archivos_excel(carpeta, columnas, fila_inicial):
-    archivos = [f for f in os.listdir(carpeta) if f.endswith('.xlsx')]
-    dataframes = []
+# Función para seleccionar la carpeta
+def select_folder():
+    folder_path = filedialog.askdirectory()
+    folder_var.set(folder_path)
 
-    for archivo in archivos:
-        ruta_archivo = os.path.join(carpeta, archivo)
-        df = pd.read_excel(ruta_archivo, sheet_name="ITEM_O", usecols=columnas, skiprows=range(fila_inicial-1))
-        dataframes.append(df)
-
-    return pd.concat(dataframes, ignore_index=True)
-
-# Función para actualizar la barra de progreso
-def actualizar_progreso(total, actual):
-    porcentaje = (actual / total) * 100
-    progress_bar['value'] = porcentaje
-    ventana.update_idletasks()
-
-# Función para iniciar el proceso ETL
-def iniciar_proceso():
-    # Obtener carpeta
-    carpeta = filedialog.askdirectory(title="Selecciona la carpeta con archivos Excel")
-
-    if not carpeta:
-        messagebox.showwarning("Advertencia", "Debe seleccionar una carpeta")
+# Función para seleccionar la fila inicial y las columnas
+def select_columns_row():
+    global initial_row, columns_range
+    try:
+        initial_row = int(initial_row_var.get())
+        columns_range = [int(col.strip()) for col in columns_range_var.get().split(',')]
+    except ValueError:
+        messagebox.showerror("Error", "Por favor, introduzca valores válidos para fila y columnas.")
         return
 
-    # Obtener columnas
-    columnas = simpledialog.askstring("Columnas", "Ingresa el rango de columnas (ejemplo: A:D)")
-
-    if not columnas:
-        messagebox.showwarning("Advertencia", "Debe ingresar el rango de columnas")
+    if not (0 <= initial_row):
+        messagebox.showerror("Error", "La fila inicial debe ser un valor positivo.")
         return
 
-    # Obtener fila inicial
-    fila_inicial = simpledialog.askinteger("Fila Inicial", "Ingresa el número de la fila inicial")
-
-    if not fila_inicial:
-        messagebox.showwarning("Advertencia", "Debe ingresar la fila inicial")
+    if not columns_range:
+        messagebox.showerror("Error", "Debe introducir al menos una columna.")
         return
 
-    # Iniciar proceso en un hilo separado
-    def etl_proceso():
-        archivos = [f for f in os.listdir(carpeta) if f.endswith('.xlsx')]
-        total_archivos = len(archivos)
+    load_data()
 
-        if total_archivos == 0:
-            messagebox.showwarning("Advertencia", "No se encontraron archivos Excel en la carpeta seleccionada")
-            return
+# Función para cargar datos desde los archivos Excel
+def load_data():
+    folder_path = folder_var.get()
+    if not folder_path:
+        messagebox.showerror("Error", "Debe seleccionar una carpeta.")
+        return
 
-        dataframes = []
-        for i, archivo in enumerate(archivos):
-            ruta_archivo = os.path.join(carpeta, archivo)
-            df = pd.read_excel(ruta_archivo, sheet_name="ITEM_O", usecols=columnas, skiprows=range(fila_inicial-1))
-            dataframes.append(df)
-            actualizar_progreso(total_archivos, i + 1)
+    progress_bar['value'] = 0
+    root.update_idletasks()
 
-        dataset_final = pd.concat(dataframes, ignore_index=True)
+    data_frames = []
+    files = [f for f in os.listdir(folder_path) if f.endswith('.xlsx')]
 
-        # Mostrar el dataset final en una nueva ventana
-        mostrar_dataset(dataset_final)
+    for i, file in enumerate(files):
+        file_path = os.path.join(folder_path, file)
+        try:
+            df = pd.read_excel(file_path, sheet_name='ITEM_O', header=None)
+            df = df.iloc[initial_row-1:, columns_range]
+            data_frames.append(df)
+            progress_bar['value'] = (i+1)/len(files)*100
+            root.update_idletasks()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo procesar el archivo {file}: {e}")
 
-    hilo = threading.Thread(target=etl_proceso)
-    hilo.start()
+    if not data_frames:
+        messagebox.showinfo("Información", "No se encontraron datos para consolidar.")
+        return
 
-# Función para mostrar el dataset final
-def mostrar_dataset(dataset):
-    ventana_dataset = Toplevel(ventana)
-    ventana_dataset.title("Dataset Final")
+    final_df = pd.concat(data_frames, ignore_index=True)
+    final_df_path = os.path.join(folder_path, 'dataset_final.xlsx')
+    final_df.to_excel(final_df_path, index=False)
+    messagebox.showinfo("Éxito", f"El dataset final se ha guardado en {final_df_path}")
 
-    # Crear un widget Treeview para mostrar el DataFrame
-    tree = ttk.Treeview(ventana_dataset)
-    tree.pack(fill=BOTH, expand=True)
+# Configuración de la interfaz gráfica
+root = Tk()
+root.title("Proceso ETL")
 
-    # Definir columnas
-    tree["column"] = list(dataset.columns)
-    tree["show"] = "headings"
+folder_var = StringVar()
+initial_row_var = StringVar()
+columns_range_var = StringVar()
 
-    for columna in tree["column"]:
-        tree.heading(columna, text=columna)
+# Etiquetas y campos de entrada
+Label(root, text="Selecciona la carpeta con archivos Excel:").grid(row=0, column=0, padx=10, pady=10)
+Button(root, text="Seleccionar Carpeta", command=select_folder).grid(row=0, column=1, padx=10, pady=10)
 
-    # Insertar datos en el Treeview
-    for index, row in dataset.iterrows():
-        tree.insert("", "end", values=list(row))
+Label(root, text="Fila inicial (número):").grid(row=1, column=0, padx=10, pady=10)
+Entry(root, textvariable=initial_row_var).grid(row=1, column=1, padx=10, pady=10)
 
-# Crear la ventana principal
-ventana = tk.Tk()
-ventana.title("Proceso ETL")
+Label(root, text="Rango de columnas (separadas por coma):").grid(row=2, column=0, padx=10, pady=10)
+Entry(root, textvariable=columns_range_var).grid(row=2, column=1, padx=10, pady=10)
 
-# Crear un botón para iniciar el proceso ETL
-boton_iniciar = tk.Button(ventana, text="Iniciar Proceso ETL", command=iniciar_proceso)
-boton_iniciar.pack(pady=20)
+Button(root, text="Cargar Datos", command=select_columns_row).grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
-# Crear una barra de progreso
-progress_bar = ttk.Progressbar(ventana, orient=HORIZONTAL, length=300, mode='determinate')
-progress_bar.pack(pady=20)
+# Barra de progreso
+progress_bar = Progressbar(root, orient='horizontal', length=300, mode='determinate')
+progress_bar.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
 
-ventana.mainloop()
+root.mainloop()
