@@ -31,7 +31,9 @@ def generate_charts_from_exe(file_path):
             sizes.append(int(size))
         
         colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue']
-        explode = (0.1, 0, 0, 0)  # "Explota" el primer segmento si hay 4 categorías
+        
+        # Ajustar el tamaño de 'explode' según el número de categorías
+        explode = [0.1] * min(4, len(labels)) + [0] * (len(labels) - min(4, len(labels)))
 
         fig, ax = plt.subplots(figsize=(6, 6))
 
@@ -58,7 +60,9 @@ def generate_charts_from_xlsx(file_path):
         sizes = df.iloc[:, 1].tolist()
         
         colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue']
-        explode = (0.1, 0, 0, 0)  # "Explota" el primer segmento si hay 4 categorías
+        
+        # Ajustar el tamaño de 'explode' según el número de categorías
+        explode = [0.1] * min(4, len(labels)) + [0] * (len(labels) - min(4, len(labels)))
 
         fig, ax = plt.subplots(figsize=(6, 6))
 
