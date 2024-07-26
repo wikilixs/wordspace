@@ -72,6 +72,14 @@ def load_data():
         try:
             df = pd.read_excel(file_path, sheet_name='ITEM_O', header=None)
             df = df.iloc[initial_row-1:, columns_range]
+            
+            # Detectar y extraer fechas
+            date_columns = df.select_dtypes(include=['datetime64']).columns.tolist()
+            for col in date_columns:
+                df[f'{col}_year'] = df[col].dt.year
+                df[f'{col}_month'] = df[col].dt.month
+                df[f'{col}_day'] = df[col].dt.day
+
             data_frames.append(df)
             progress_bar['value'] = (i+1)/len(files)*100
             root.update_idletasks()
