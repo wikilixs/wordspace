@@ -15,7 +15,7 @@ def select_file():
         elif file_path.endswith('.xlsx'):
             generate_charts_from_xlsx(file_path)
 
-# Función para generar gráficos a partir de un archivo .exe
+# Función para generar gráficos de barras a partir de un archivo .exe
 def generate_charts_from_exe(file_path):
     try:
         # Ejecutar el archivo .exe y capturar la salida
@@ -30,16 +30,13 @@ def generate_charts_from_exe(file_path):
             labels.append(label)
             sizes.append(int(size))
         
-        colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue']
-        
-        # Ajustar el tamaño de 'explode' según el número de categorías
-        explode = [0.1] * min(4, len(labels)) + [0] * (len(labels) - min(4, len(labels)))
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-        fig, ax = plt.subplots(figsize=(6, 6))
-
-        # Gráfico de pastel
-        ax.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
-        ax.axis('equal')  # Para que sea un círculo
+        # Gráfico de barras
+        ax.bar(labels, sizes, color='skyblue')
+        ax.set_xlabel('Categorías')
+        ax.set_ylabel('Valores')
+        ax.set_title('Gráfico de Barras')
 
         # Mostrar gráficos en la interfaz
         canvas = FigureCanvasTkAgg(fig, master=root)
@@ -49,7 +46,7 @@ def generate_charts_from_exe(file_path):
     except Exception as e:
         messagebox.showerror("Error", f"Error al generar gráficos desde el archivo .exe: {e}")
 
-# Función para generar gráficos a partir de un archivo .xlsx
+# Función para generar gráficos de barras a partir de un archivo .xlsx
 def generate_charts_from_xlsx(file_path):
     try:
         # Leer datos del archivo .xlsx
@@ -59,16 +56,13 @@ def generate_charts_from_xlsx(file_path):
         labels = df.iloc[:, 0].tolist()
         sizes = df.iloc[:, 1].tolist()
         
-        colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue']
-        
-        # Ajustar el tamaño de 'explode' según el número de categorías
-        explode = [0.1] * min(4, len(labels)) + [0] * (len(labels) - min(4, len(labels)))
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-        fig, ax = plt.subplots(figsize=(6, 6))
-
-        # Gráfico de pastel
-        ax.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
-        ax.axis('equal')  # Para que sea un círculo
+        # Gráfico de barras
+        ax.bar(labels, sizes, color='skyblue')
+        ax.set_xlabel('Categorías')
+        ax.set_ylabel('Valores')
+        ax.set_title('Gráfico de Barras')
 
         # Mostrar gráficos en la interfaz
         canvas = FigureCanvasTkAgg(fig, master=root)
