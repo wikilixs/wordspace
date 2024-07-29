@@ -38,15 +38,23 @@ missing_value_handling = st.selectbox(
 # Preprocesamiento de los datos
 def preprocess_data(df, method):
     df = df.copy()
-    df['gender'] = df['gender'].map({'M': 1, 'F': 0})
-    df['lung_cancer'] = df['lung_cancer'].map({'YES': 1, 'NO': 0})
+    df['gender'] = df['gender'].map({'M': 1, 'F': 0, 1: 1, 0: 0})
+    df['lung_cancer'] = df['lung_cancer'].map({'YES': 1, 'NO': 0, '是': 1, '不是': 0})
     
+    # Mostrar el DataFrame antes de manejar valores faltantes
+    st.write('DataFrame antes de manejar valores faltantes:')
+    st.write(df.head())
+
     # Manejar valores faltantes
     if method == 'Eliminar filas con valores faltantes':
         df.dropna(inplace=True)
     elif method == 'Imputar valores faltantes':
         imputer = SimpleImputer(strategy='mean')
         df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+    
+    # Mostrar el DataFrame después de manejar valores faltantes
+    st.write('DataFrame después de manejar valores faltantes:')
+    st.write(df.head())
     
     return df
 
@@ -108,3 +116,4 @@ else:
         ax.set_xlabel('Predicción de Cáncer de Pulmón')
         ax.set_ylabel('Frecuencia')
         st.pyplot(fig)
+
