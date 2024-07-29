@@ -17,25 +17,27 @@ def load_data():
 
 dataset, survey = load_data()
 
-# Mostrar los datos
-st.write('## Datos del Dataset')
-st.write(dataset.head())
+# Mostrar los nombres de las columnas
+st.write('Nombres de las columnas del dataset:')
+st.write(dataset.columns)
 
-st.write('## Datos de la Encuesta')
-st.write(survey.head())
+st.write('Nombres de las columnas de la encuesta:')
+st.write(survey.columns)
 
 # Preprocesamiento de los datos
 def preprocess_data(df):
     df = df.copy()
-    df['Gender'] = df['Gender'].map({'M': 1, 'F': 0})
-    df['Lung Cancer'] = df['Lung Cancer'].map({'YES': 1, 'NO': 0})
+    # Ajustar nombres de las columnas si es necesario
+    df.columns = df.columns.str.strip().str.replace(' ', '_').str.lower()
+    df['gender'] = df['gender'].map({'M': 1, 'F': 0})
+    df['lung_cancer'] = df['lung_cancer'].map({'YES': 1, 'NO': 0})
     return df
 
 dataset = preprocess_data(dataset)
 
 # Seleccionar las características y el objetivo
-X = dataset.drop('Lung Cancer', axis=1)
-y = dataset['Lung Cancer']
+X = dataset.drop('lung_cancer', axis=1)
+y = dataset['lung_cancer']
 
 # Dividir los datos en conjuntos de entrenamiento y prueba
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -62,7 +64,7 @@ st.write(report)
 # Predicción con nuevos datos de la encuesta
 def predict_cancer(data):
     data = preprocess_data(data)
-    predictions = model.predict(data.drop('Lung Cancer', axis=1))
+    predictions = model.predict(data.drop('lung_cancer', axis=1))
     return predictions
 
 survey_predictions = predict_cancer(survey)
@@ -80,4 +82,3 @@ ax.set_xticklabels(['No', 'Sí'])
 ax.set_xlabel('Predicción de Cáncer de Pulmón')
 ax.set_ylabel('Frecuencia')
 st.pyplot(fig)
-
