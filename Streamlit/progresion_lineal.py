@@ -12,7 +12,7 @@ st.set_page_config(page_title="Análisis de Datos de Corazón", page_icon=":hear
 st.title("Análisis de Datos de Corazón")
 
 # Cargar los datos desde el archivo heart.csv
-data = pd.read_csv('heart.csv')
+data = pd.read_csv('Streamlit/heart.csv')
 
 # Convertir variables categóricas a numéricas
 le = LabelEncoder()
