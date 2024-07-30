@@ -10,7 +10,7 @@ st.set_page_config(page_title="Análisis de Datos de Corazón", page_icon=":hear
 st.title("Análisis de Datos de Corazón")
 
 # Cargar los datos desde el archivo heart.xls (CSV)
-data = pd.read_csv('heart.csv')
+data = pd.read_csv('Streamlit/heart.csv')
 
 # Histograma de edades
 st.subheader("Histograma de Edades")
