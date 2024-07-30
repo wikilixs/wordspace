@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
 
 # Configuración de la página
 st.set_page_config(page_title="Análisis de Datos de Corazón", page_icon=":heart:")
@@ -9,8 +11,27 @@ st.set_page_config(page_title="Análisis de Datos de Corazón", page_icon=":hear
 # Título de la aplicación
 st.title("Análisis de Datos de Corazón")
 
-# Cargar los datos desde el archivo heart.xls (CSV)
-data = pd.read_csv('Streamlit/heart.csv')
+# Cargar los datos desde el archivo heart.csv
+data = pd.read_csv('heart.csv')
+
+# Convertir variables categóricas a numéricas
+le = LabelEncoder()
+data['Sex'] = le.fit_transform(data['Sex'])
+data['ChestPainType'] = le.fit_transform(data['ChestPainType'])
+data['RestingECG'] = le.fit_transform(data['RestingECG'])
+data['ExerciseAngina'] = le.fit_transform(data['ExerciseAngina'])
+data['ST_Slope'] = le.fit_transform(data['ST_Slope'])
+
+# Definir características y objetivo
+X = data.drop('HeartDisease', axis=1)
+y = data['HeartDisease']
+
+# Entrenar el modelo de Random Forest
+rf_model = RandomForestClassifier(random_state=42)
+rf_model.fit(X, y)
+
+# Obtener importancias de características
+feature_importances = pd.Series(rf_model.feature_importances_, index=X.columns).sort_values(ascending=False)
 
 # Histograma de edades
 st.subheader("Histograma de Edades")
@@ -25,7 +46,7 @@ st.pyplot(plt)
 st.subheader("Gráfico de Pastel de Géneros")
 gender_counts = data['Sex'].value_counts()
 plt.figure(figsize=(8, 8))
-plt.pie(gender_counts, labels=gender_counts.index, autopct='%1.1f%%', startangle=140)
+plt.pie(gender_counts, labels=['M', 'F'], autopct='%1.1f%%', startangle=140)
 plt.axis('equal')  # Para asegurar que el gráfico de pastel sea circular
 plt.title('Distribución de Géneros')
 st.pyplot(plt)
@@ -38,6 +59,7 @@ sns.barplot(x=chest_pain_counts.index, y=chest_pain_counts.values, palette='viri
 plt.xlabel('Tipo de Dolor Torácico')
 plt.ylabel('Frecuencia')
 plt.title('Frecuencia de Cada Tipo de Dolor Torácico')
+plt.xticks(ticks=chest_pain_counts.index, labels=['ATA', 'NAP', 'ASY', 'TA'])
 st.pyplot(plt)
 
 # Histograma de niveles de colesterol
@@ -66,6 +88,7 @@ stacked_bar_data.plot(kind='bar', stacked=True, figsize=(10, 6), colormap='virid
 plt.xlabel('Tipo de Dolor Torácico')
 plt.ylabel('Cantidad de Individuos')
 plt.title('Relación entre Tipo de Dolor Torácico y Enfermedad Cardíaca')
+plt.xticks(ticks=stacked_bar_data.index, labels=['ATA', 'NAP', 'ASY', 'TA'])
 st.pyplot(plt)
 
 # Heatmap de correlación
@@ -75,6 +98,15 @@ numeric_data = data.select_dtypes(include=['float64', 'int64'])
 correlation_matrix = numeric_data.corr()
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
 plt.title('Mapa de Calor de Correlaciones')
+st.pyplot(plt)
+
+# Gráfico de importancias de características del modelo Random Forest
+st.subheader("Importancia de Características (Random Forest)")
+plt.figure(figsize=(12, 8))
+sns.barplot(x=feature_importances, y=feature_importances.index, palette='viridis')
+plt.xlabel('Importancia')
+plt.ylabel('Características')
+plt.title('Importancia de Características (Random Forest)')
 st.pyplot(plt)
 
 # Mostrar los primeros registros del dataset
